@@ -1,4 +1,4 @@
-# 3ds-docker-ci
+# 3DS CI Docker Image
 Docker image with a 3DS build environment
 
 ## What does this do?
