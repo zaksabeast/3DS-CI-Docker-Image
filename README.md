@@ -1,20 +1,47 @@
-# 3DS CI Docker Image
-Docker image with a 3DS build environment
+# 3DS Docker
+_An updated development environment for the Nintendo 3DS_
 
-## What does this do?
-This Docker image can be used to build 3DS homebrew.
+## Goals
+- Provide an automated way to setup a 3DS dev environment
+- Provide an easy way to compile 3DS homebrew locally
+- Provide a solution for continuous integration
+- Provide the latest libraries by compiling from source
 
-Potential applications include:
-- Continuous integration for 3DS homebrew
-- Automated builds for a website or Discord channel
-- Local builds without the need to setup a build environment
+## Building image
+```
+docker build -t 3dsci .
+```
 
-## Does this image have any benefits?
-When tools are updated (libctru, devkitARM, etc.), rebuild this Docker image and it'll build the latest tools (with the exception of 3dstool)
+## Running image
+```
+docker run -it 3dsci /bin/bash
+```
 
-It's easily deployable to the cloud and easily useable locally.
+## Build project in current directory
+```
+docker run -it -v "$(pwd)":/app 3dsci make
+```
 
-Used in conjunction with source control, nightly/experimental builds are simple to automate.
+## 3dsmake command
+
+Linux:
+```
+echo alias 3dsmake=\'docker run -it -v '"$(pwd)"':/app 3dsci make\' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Mac:
+```
+echo alias 3dsmake=\'docker run -it -v '"$(pwd)"':/app 3dsci make\' >> ~/.bash_profile
+source ~/.bash_profile
+```
+
+Usage:
+```
+cd <3DS homebrew project>
+3dsmake clean
+3dsmake
+```
 
 ## What does this Docker image have?
 - devkitARM

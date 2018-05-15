@@ -1,57 +1,73 @@
-# Use an official Python runtime as a base image
-FROM python:2.7-slim
+# Use minideb base
+FROM bitnami/minideb
+
+# Set Environment Variables
+ENV WORKDIR /app
+ENV DEVKITPRO /opt/devkitpro
+ENV DEVKITARM ${DEVKITPRO}/devkitARM
+ENV DEVTOOLS ${DEVKITPRO}/devtools
+ENV PATH=${PATH}:${DEVKITARM}/bin:${DEVTOOLS}
 
 # Set the working directory to /app
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-ADD . /app
-
-# Setup dependencies
-RUN apt-get update
-RUN apt-get install libgmp3-dev zip git curl wget bzip2 build-essential cmake -y
-RUN mkdir /app/bin
-
-# Environment Variables
-ENV DEVKITPRO /app/devkitpro
-ENV DEVKITARM /app/devkitpro/devkitARM
+# Install dependencies
+RUN apt-get update \
+  && apt install git curl bzip2 make python gcc python-pip cmake zip -y
 
 # Install devkitARM
-RUN curl -L https://raw.githubusercontent.com/devkitPro/installer/master/perl/devkitARMupdate.pl -o devkitARMupdate.pl
-RUN chmod +x ./devkitARMupdate.pl
-RUN ./devkitARMupdate.pl /app/devkitpro
-RUN echo "export DEVKITPRO=/app/devkitpro" >> ~/.bashrc
-RUN echo "export DEVKITARM=$DEVKITPRO/devkitARM" >> ~/.bashrc
-RUN echo "export PATH=$PATH:$DEVKITARM/bin:/app/bin" >> ~/.bashrc
+RUN mkdir -p ${DEVKITARM} ${DEVTOOLS} \
+  && curl -L https://downloads.devkitpro.org/devkitARM_r47-x86_64-linux.tar.bz2 -o ${WORKDIR}/devkitARM.tar.bz2 \
+  && tar xjC ${DEVKITPRO} -f ${WORKDIR}/devkitARM.tar.bz2 \
+# Cleanup
+  && rm -rf ${WORKDIR}/* ${DEVKITPRO}/examples
 
 # Install makerom
-RUN git clone https://github.com/profi200/Project_CTR.git
-RUN cd /app/Project_CTR/makerom && make && cp makerom /app/bin/.
-
+RUN git clone https://github.com/profi200/Project_CTR.git ${WORKDIR}/Project_CTR \
+  && cd ${WORKDIR}/Project_CTR/makerom \
+  && make \
+  && cp makerom ${DEVTOOLS} \
 # Install firmtool
-RUN pip install cryptography
-RUN pip install git+https://github.com/TuxSH/firmtool.git
-
+  && pip install cryptography \
+  && pip install git+https://github.com/TuxSH/firmtool.git \
 # Install latest libctru
-RUN git clone https://github.com/smealum/ctrulib.git
-RUN cd ctrulib/libctru && make && make install
-
+  && git clone https://github.com/smealum/ctrulib.git ${WORKDIR}/ctrulib \
+  && cd ${WORKDIR}/ctrulib/libctru \
+  && make \
+  && make install \
 # Install armips
-RUN git clone --recursive https://github.com/Kingcom/armips.git
-RUN cd armips && cmake CMakeLists.txt && make && cp armips /app/bin/.
-
+  && git clone --recursive https://github.com/Kingcom/armips.git ${WORKDIR}/armips \
+  && cd ${WORKDIR}/armips \
+  && cmake CMakeLists.txt \
+  && make \
+  && cp armips ${DEVTOOLS} \
 # Install bannertool
-RUN git clone --recursive https://github.com/Steveice10/bannertool.git
-RUN cd bannertool && make && cp ./output/linux-x86_64/bannertool /app/bin/.
-
+  && git clone --recursive https://github.com/Steveice10/bannertool.git ${WORKDIR}/bannertool \
+  && cd ${WORKDIR}/bannertool \
+  && make \
+  && cp ./output/linux-x86_64/bannertool ${DEVTOOLS} \
 # Install 3dstool
-RUN curl -L https://github.com/dnasdw/3dstool/releases/download/v1.1.1/3dstool_linux_x86_64.tar.gz -o 3dstool.tar.gz
-RUN tar -xzf 3dstool.tar.gz && mv 3dstool /app/bin/.
-
+  && curl -L https://github.com/dnasdw/3dstool/releases/download/v1.1.1/3dstool_linux_x86_64.tar.gz -o ${WORKDIR}/3dstool.tar.gz \
+  && tar -xzf ${WORKDIR}/3dstool.tar.gz \
+  && mv 3dstool ${DEVTOOLS} \
 # Install 3ds_portlibs
-RUN git clone https://github.com/devkitPro/3ds_portlibs.git
-RUN cd 3ds_portlibs && make zlib && make install-zlib && make mbedtls-apache && make install-mbedtls-apache && make curl && make install
-
+  && git clone https://github.com/devkitPro/3ds_portlibs.git ${WORKDIR}/3ds_portlibs \
+  && cd ${WORKDIR}/3ds_portlibs \
+  && make zlib \
+  && make install-zlib \
+  && make mbedtls-apache \
+  && make install-mbedtls-apache \
+  && make curl \
+  && make install \
+# Install citro3d
+  && git clone https://github.com/fincs/citro3d ${WORKDIR}/citro3d \
+  && cd ${WORKDIR}/citro3d \
+  && make \
+  && make install \
+# Install citro2d
+  && git clone https://github.com/devkitPro/citro2d ${WORKDIR}/citro2d \
+  && cd ${WORKDIR}/citro2d \
+  && make \
+  && make install \
 # Cleanup
-RUN rm *.tar.bz2 devkitARMupdate.pl 3dstool.tar.gz ignore_3dstool.txt ext_key.txt
-RUN rm -rf Project_CTR ctrulib armips 3ds_portlibs bannertool
+  && rm -rf ${WORKDIR}/*
