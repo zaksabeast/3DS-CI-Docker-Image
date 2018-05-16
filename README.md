@@ -7,32 +7,37 @@ _An updated development environment for the Nintendo 3DS_
 - Provide a solution for continuous integration
 - Provide the latest libraries by compiling from source
 
-## Building image
+## Pulling image
 ```
-docker build -t 3dsci .
+docker pull zaksabeast/3dsci
 ```
 
 ## Running image
 ```
-docker run -it 3dsci /bin/bash
+docker run -it zaksabeast/3dsci /bin/bash
 ```
 
 ## Build project in current directory
 ```
-docker run -it -v "$(pwd)":/app 3dsci make
+docker run -it -v "$(pwd)":/app zaksabeast/3dsci make
+```
+
+## Building image
+```
+docker build -t 3dsci .
 ```
 
 ## 3dsmake command
 
 Linux:
 ```
-echo alias 3dsmake=\'docker run -it -v '"$(pwd)"':/app 3dsci make\' >> ~/.bashrc
+echo alias 3dsmake=\'docker run -it -v '"$(pwd)"':/app zaksabeast/3dsci make\' >> ~/.bashrc
 source ~/.bashrc
 ```
 
 Mac:
 ```
-echo alias 3dsmake=\'docker run -it -v '"$(pwd)"':/app 3dsci make\' >> ~/.bash_profile
+echo alias 3dsmake=\'docker run -it -v '"$(pwd)"':/app zaksabeast/3dsci make\' >> ~/.bash_profile
 source ~/.bash_profile
 ```
 
